@@ -218,8 +218,15 @@ const EditTransactionModal: React.FC<{ transaction: Transaction, onClose: () => 
 }
 
 const App: React.FC = () => {
-  const [view, setView] = useState<ViewState>('DASHBOARD');
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  // Initialize state from LocalStorage so refresh works
+  const [view, setView] = useState<ViewState>(() => {
+      const saved = localStorage.getItem('app_view');
+      return (saved as ViewState) || 'DASHBOARD';
+  });
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(() => {
+      return localStorage.getItem('app_selected_customer');
+  });
+
   const [darkMode, setDarkMode] = useState(false);
   const [activeTheme, setActiveTheme] = useState(THEMES[0]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -244,6 +251,19 @@ const App: React.FC = () => {
         if (theme) setActiveTheme(theme);
     }
   }, []);
+
+  // Save navigation state
+  useEffect(() => {
+      localStorage.setItem('app_view', view);
+  }, [view]);
+
+  useEffect(() => {
+      if (selectedCustomerId) {
+          localStorage.setItem('app_selected_customer', selectedCustomerId);
+      } else {
+          localStorage.removeItem('app_selected_customer');
+      }
+  }, [selectedCustomerId]);
 
   useEffect(() => {
       const root = window.document.documentElement;

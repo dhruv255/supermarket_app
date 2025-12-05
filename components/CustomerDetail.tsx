@@ -112,8 +112,9 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
     doc.text(`Statement Date: ${dateStr}`, 140, 54);
 
     const startY = customer.address ? 74 : 68;
-    const colorRed = [220, 50, 50];
-    const colorGreen = [46, 204, 113];
+    // Explicitly type color arrays as tuples for jspdf-autotable compatibility
+    const colorRed: [number, number, number] = [220, 50, 50];
+    const colorGreen: [number, number, number] = [46, 204, 113];
 
     autoTable(doc, {
         startY: startY,

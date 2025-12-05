@@ -22,6 +22,7 @@
             },
             padding: {
                 'safe-bottom': 'env(safe-area-inset-bottom)',
+                'safe-top': 'env(safe-area-inset-top)',
             },
             margin: {
                 'safe-bottom': 'env(safe-area-inset-bottom)',
@@ -36,15 +37,13 @@
         --color-primary-hover: #1640d6;
       }
       
-      /* Smooth scrolling but preventing pull-to-refresh on mobile app feel */
       html, body {
         overscroll-behavior-y: none;
         -webkit-tap-highlight-color: transparent;
       }
 
-      /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
-        width: 4px; /* Thinner for mobile */
+        width: 4px;
         height: 4px;
       }
       ::-webkit-scrollbar-track {
@@ -61,7 +60,6 @@
         background: #4B5563;
       }
       
-      /* Hide scrollbar for clean UI in lists but keep functionality */
       .no-scrollbar::-webkit-scrollbar {
           display: none;
       }
@@ -95,23 +93,32 @@
         * { color: black !important; }
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react/": "https://aistudiocdn.com/react@^19.2.1/",
     "react": "https://aistudiocdn.com/react@^19.2.1",
     "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.4",
+    "vite": "https://aistudiocdn.com/vite@^7.2.6",
+    "path": "https://aistudiocdn.com/path@^0.12.7",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "jspdf": "https://aistudiocdn.com/jspdf@^2.5.2",
-    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^3.8.4"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "fs": "https://aistudiocdn.com/fs@^0.0.1-security",
+    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2"
   }
 }
 </script>
 </head>
   <body class="bg-surface dark:bg-darkSurface text-gray-800 dark:text-gray-100 antialiased selection:bg-primary selection:text-white transition-colors duration-200">
-    <div id="root"></div>
+    <div id="root">
+        <div style="height: 100dvh; display: flex; align-items: center; justify-content: center; background: #f5f7fa; color: #666;">
+            Loading App...
+        </div>
+    </div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
