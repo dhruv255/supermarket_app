@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mahalaxmi Supermarket Ledger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#1B4FFF',
+              success: '#2ECC71',
+              pending: '#FFB020',
+              danger: '#FF3B30',
+              surface: '#F5F7FA',
+              darkSurface: '#111827',
+              darkCard: '#1F2937',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .dark ::-webkit-scrollbar-track {
+        background: #374151;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #4B5563;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+      
+      @media print {
+        @page { size: auto; margin: 0mm; }
+        body { background-color: white; }
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        
+        /* Reset layout for print */
+        #root, .flex-col, .h-screen, .md\:flex-row {
+            height: auto !important;
+            overflow: visible !important;
+            display: block !important;
+        }
+        
+        /* Hide sidebar and mobile nav */
+        aside, .fixed.bottom-0 { display: none !important; }
+        
+        /* Expand main content */
+        main {
+            height: auto !important;
+            overflow: visible !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 20px !important;
+        }
+        
+        /* Ensure lists print fully */
+        .overflow-y-auto {
+            height: auto !important;
+            overflow: visible !important;
+        }
+        
+        /* Force dark text on print */
+        * { color: black !important; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+    "jspdf": "https://aistudiocdn.com/jspdf@^2.5.2",
+    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^3.8.4"
+  }
+}
+</script>
+</head>
+  <body class="bg-surface dark:bg-darkSurface text-gray-800 dark:text-gray-100 antialiased selection:bg-primary selection:text-white transition-colors duration-200">
+    <div id="root"></div>
+  </body>
+</html>
