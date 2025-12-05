@@ -30,8 +30,6 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
 
     let thisMonthBorrow = 0;
     let thisYearBorrow = 0;
-    
-    // Historical totals for the footer
     let totalCreditGiven = 0;
     let totalReceived = 0;
     
@@ -62,9 +60,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
   };
 
   const cleanPhone = (phone: string) => {
-    // Remove spaces, dashes, parentheses
     let cleaned = phone.replace(/[\s\-()]/g, '');
-    // Check if it starts with country code, if not assume India (91)
     if (!cleaned.startsWith('+') && cleaned.length === 10) {
         cleaned = '91' + cleaned;
     }
@@ -87,11 +83,8 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
     const doc = new jsPDF();
     const profile = DB.getProfile();
 
-    // --- PDF Content Generation ---
-
-    // 1. Header (Store Details)
     doc.setFontSize(22);
-    doc.setTextColor(27, 79, 255); // Primary Blue
+    doc.setTextColor(27, 79, 255);
     doc.text(profile.name, 14, 20);
 
     doc.setFontSize(10);
@@ -99,12 +92,10 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
     doc.text(profile.address, 14, 26);
     doc.text(`Phone: ${profile.phone}`, 14, 31);
     
-    // Line separator
     doc.setDrawColor(220);
     doc.setLineWidth(0.5);
     doc.line(14, 35, 196, 35);
 
-    // 2. Customer Details
     doc.setFontSize(16);
     doc.setTextColor(0);
     doc.text("Customer Statement", 14, 46);
@@ -120,13 +111,9 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
     const dateStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
     doc.text(`Statement Date: ${dateStr}`, 140, 54);
 
-    // 3. Analysis Summary Box
     const startY = customer.address ? 74 : 68;
-    
-    // Colors
     const colorRed = [220, 50, 50];
     const colorGreen = [46, 204, 113];
-    const colorBlack = [0, 0, 0];
 
     autoTable(doc, {
         startY: startY,
@@ -138,28 +125,14 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
             `Rs. ${stats.thisMonthBorrow}`
         ]],
         theme: 'grid',
-        headStyles: { 
-            fillColor: [245, 247, 250], 
-            textColor: 80, 
-            fontSize: 9,
-            fontStyle: 'bold',
-            lineColor: 220,
-            lineWidth: 0.1
-        },
-        bodyStyles: { 
-            fontSize: 11, 
-            fontStyle: 'bold', 
-            textColor: 50,
-            minCellHeight: 12,
-            valign: 'middle'
-        },
+        headStyles: { fillColor: [245, 247, 250], textColor: 80, fontSize: 9, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 11, fontStyle: 'bold', textColor: 50, minCellHeight: 12, valign: 'middle' },
         columnStyles: {
             0: { textColor: balance > 0 ? colorRed : colorGreen, fontSize: 12 },
             3: { textColor: colorRed }
         }
     });
 
-    // 4. Transaction History Table
     const tableStartY = (doc as any).lastAutoTable.finalY + 10;
     
     doc.setFontSize(12);
@@ -180,86 +153,50 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
         theme: 'striped',
         headStyles: { fillColor: [27, 79, 255] },
         styles: { fontSize: 10, cellPadding: 3 },
-        columnStyles: {
-            2: { fontStyle: 'bold' },
-            3: { halign: 'right', fontStyle: 'bold' }
-        },
+        columnStyles: { 2: { fontStyle: 'bold' }, 3: { halign: 'right', fontStyle: 'bold' } },
         didParseCell: function(data) {
             if (data.section === 'body') {
                 if (data.column.index === 2) {
-                     // Color the Type column
-                    if (data.cell.raw === 'DEBIT') {
-                        data.cell.styles.textColor = colorRed;
-                    } else {
-                        data.cell.styles.textColor = colorGreen;
-                    }
+                    if (data.cell.raw === 'DEBIT') data.cell.styles.textColor = colorRed;
+                    else data.cell.styles.textColor = colorGreen;
                 }
-                if (data.column.index === 3 && data.row.raw[2] === 'DEBIT') {
-                     // Make debit amounts red
-                     data.cell.styles.textColor = colorRed;
-                } else if (data.column.index === 3) {
-                     // Make credit amounts green
-                     data.cell.styles.textColor = colorGreen;
-                }
+                if (data.column.index === 3 && data.row.raw[2] === 'DEBIT') data.cell.styles.textColor = colorRed;
+                else if (data.column.index === 3) data.cell.styles.textColor = colorGreen;
             }
         }
     });
 
-    // Footer
     const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(10);
     doc.setTextColor(150);
     doc.text("Generated by Mahalaxmi Supermarket Ledger App", 105, finalY, { align: 'center' });
 
-    // --- Save & Share Logic ---
     const fileName = `${customer.name.replace(/\s+/g, '_')}_Statement.pdf`;
-    
-    // Save locally
     doc.save(fileName);
 
-    // Attempt Share
     try {
         const pdfBlob = doc.output('blob');
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-        
-        // 1. Try Native Mobile Share (Works on Android/iOS Chrome/Safari)
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
              await navigator.share({
                 files: [file],
                 title: `Statement: ${customer.name}`,
-                text: `Mahalaxmi Supermarket Statement for ${customer.name}.\nBalance: Rs. ${balance}\nPaid: Rs. ${stats.totalReceived}`
+                text: `Mahalaxmi Supermarket Statement for ${customer.name}.\nBalance: Rs. ${balance}`
             });
-        } else {
-            // 2. Fallback for Desktop/Unsuppported: WhatsApp Link with Summary
-             const text = `*Statement for ${customer.name}*\n\n📅 Date: ${dateStr}\n💰 *Balance: Rs. ${balance}*\n📉 Total Paid: Rs. ${stats.totalReceived}\n\n(I have downloaded the PDF report separately)`;
-             const phone = cleanPhone(customer.phone);
-             
-             // Small timeout to allow the browser to initiate the download first
-             setTimeout(() => {
-                 if(confirm("Report downloaded!\n\nDo you want to open WhatsApp to share the details?")) {
-                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
-                 }
-             }, 800);
         }
-    } catch (e) {
-        console.error("Share failed", e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   return (
     <div className="h-full flex flex-col bg-surface dark:bg-darkSurface relative transition-colors duration-200">
       {/* Header */}
-      <div className="bg-primary text-white p-4 pb-16 relative no-print">
-        <div className="flex justify-between items-center mb-6">
-            <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+      <div className="bg-primary text-white p-4 pb-16 relative no-print transition-colors duration-300">
+        <div className="flex justify-between items-center mb-6 pt-safe-top">
+            <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors active:scale-90">
                 <ArrowLeft size={24} />
             </button>
             <div className="flex gap-2">
-                <button 
-                    onClick={handleDownloadReport} 
-                    className="p-2 hover:bg-white/10 rounded-full flex items-center gap-1" 
-                    title="Download & Share Report"
-                >
+                <button onClick={handleDownloadReport} className="p-2 hover:bg-white/10 rounded-full flex items-center gap-1" title="Download">
                     <Download size={20} />
                 </button>
                  <button onClick={() => setShowDeleteModal(true)} className="p-2 hover:bg-white/10 rounded-full text-red-200 hover:text-red-100" title="Delete">
@@ -269,17 +206,17 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
         </div>
         
         <div className="flex items-center gap-4 px-2">
-            <div className="w-16 h-16 bg-white/20 rounded-full backdrop-blur-sm overflow-hidden border-2 border-white/30">
+            <div className="w-16 h-16 bg-white/20 rounded-full backdrop-blur-sm overflow-hidden border-2 border-white/30 flex-shrink-0">
                  {customer.photoUrl ? (
                     <img src={customer.photoUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-white text-xl font-bold">{customer.name[0]}</div>
                 )}
             </div>
-            <div>
-                <h1 className="text-2xl font-bold">{customer.name}</h1>
-                <p className="text-blue-100 opacity-90">{customer.phone}</p>
-                {customer.address && <p className="text-xs text-blue-200 mt-1">{customer.address}</p>}
+            <div className="min-w-0">
+                <h1 className="text-2xl font-bold truncate leading-tight">{customer.name}</h1>
+                <p className="text-blue-100 opacity-90 truncate">{customer.phone}</p>
+                {customer.address && <p className="text-xs text-blue-200 mt-1 truncate">{customer.address}</p>}
             </div>
         </div>
       </div>
@@ -289,8 +226,8 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
         <div className="bg-white dark:bg-darkCard rounded-xl shadow-lg p-4 border border-gray-100 dark:border-gray-700">
             <div className="flex justify-between items-start mb-2">
                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Current Balance</p>
-                    <p className={`text-3xl font-bold ${balance > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                    <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Current Balance</p>
+                    <p className={`text-2xl md:text-3xl font-bold truncate max-w-[200px] ${balance > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                         ₹{balance.toLocaleString()}
                     </p>
                 </div>
@@ -304,20 +241,20 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
                 )}
             </div>
             
-            <div className="flex gap-3 no-print mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                 <button onClick={handleWhatsApp} className="w-10 h-10 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full flex items-center justify-center hover:bg-green-200 transition-colors" title="Chat on WhatsApp">
+            <div className="flex gap-3 no-print mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 justify-around sm:justify-start">
+                 <button onClick={handleWhatsApp} className="w-10 h-10 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full flex items-center justify-center hover:bg-green-200 transition-colors active:scale-90" title="Chat on WhatsApp">
                     <Phone size={20} />
                  </button>
                  <button 
                     onClick={() => { setShowReminderModal(true); if(balance > 0) handleGenerateReminder(); }}
-                    className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors"
+                    className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors active:scale-90"
                     title="Send Reminder"
                 >
                     <MessageCircle size={20} />
                  </button>
                  <button 
                     onClick={handleDownloadReport}
-                    className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full flex items-center justify-center hover:bg-indigo-200 transition-colors"
+                    className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full flex items-center justify-center hover:bg-indigo-200 transition-colors active:scale-90"
                     title="Share Report"
                 >
                     <Share2 size={20} />
@@ -333,54 +270,53 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
                 <Calendar size={14} />
                 <span className="text-xs font-medium">This Month</span>
              </div>
-             <p className="font-bold text-gray-800 dark:text-white">₹{stats.thisMonthBorrow.toLocaleString()}</p>
+             <p className="font-bold text-gray-800 dark:text-white truncate">₹{stats.thisMonthBorrow.toLocaleString()}</p>
           </div>
           <div className="bg-white dark:bg-darkCard p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                 <Calendar size={14} />
                 <span className="text-xs font-medium">This Year</span>
              </div>
-             <p className="font-bold text-gray-800 dark:text-white">₹{stats.thisYearBorrow.toLocaleString()}</p>
+             <p className="font-bold text-gray-800 dark:text-white truncate">₹{stats.thisYearBorrow.toLocaleString()}</p>
           </div>
       </div>
 
-      {/* Add New Credit Button */}
       <div className="px-4 mb-4">
           <button 
             onClick={() => onAddTransaction(customer.id, TransactionType.BORROW)}
-            className="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 py-3 rounded-xl flex items-center justify-center gap-2 font-semibold transition-colors"
+            className="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 py-3 rounded-xl flex items-center justify-center gap-2 font-semibold transition-colors active:scale-[0.98]"
           >
-              <PlusCircle size={18} /> Add New Credit / Borrow
+              <PlusCircle size={18} /> Add Credit
           </button>
       </div>
 
       {/* Transaction History */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
-        <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Transaction History</h3>
+      <div className="flex-1 overflow-y-auto px-4 pb-32">
+        <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">History</h3>
         <div className="space-y-3 relative">
             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
             
             {transactions.map(t => (
                 <div key={t.id} className="relative pl-10 group">
                     <div className={`absolute left-[11px] top-3 w-3 h-3 rounded-full border-2 border-white dark:border-darkCard ${t.type === TransactionType.BORROW ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                    <div className="bg-white dark:bg-darkCard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 relative">
+                    <div className="bg-white dark:bg-darkCard p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 relative active:scale-[0.99] transition-transform">
                         <div className="flex justify-between items-start mb-1">
                             <div>
-                                <h4 className="font-semibold text-gray-800 dark:text-gray-100">{t.type === TransactionType.BORROW ? 'Items Purchased (Credit)' : 'Payment Received'}</h4>
-                                <p className="text-xs text-gray-400">{new Date(t.date).toLocaleString()}</p>
+                                <h4 className="font-semibold text-sm text-gray-800 dark:text-gray-100">{t.type === TransactionType.BORROW ? 'Goods (Credit)' : 'Received'}</h4>
+                                <p className="text-[10px] text-gray-400">{new Date(t.date).toLocaleDateString()}</p>
                             </div>
-                            <span className={`font-bold ${t.type === TransactionType.BORROW ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                            <span className={`font-bold text-sm ${t.type === TransactionType.BORROW ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                                 {t.type === TransactionType.BORROW ? '-' : '+'}₹{t.amount}
                             </span>
                         </div>
                         {t.items && (
-                            <p className="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg mt-2">{t.items}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg mt-2 line-clamp-2">{t.items}</p>
                         )}
                         <div className="mt-2 flex justify-between items-center">
-                            <span className="text-[10px] bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-500 dark:text-gray-400 uppercase">{t.method}</span>
+                            <span className="text-[10px] bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500 dark:text-gray-400 uppercase">{t.method}</span>
                             <button 
                                 onClick={() => onEditTransaction(t)}
-                                className="text-gray-400 hover:text-primary dark:hover:text-primary transition-colors p-1"
+                                className="text-gray-400 hover:text-primary dark:hover:text-primary transition-colors p-2 -m-2"
                             >
                                 <Pencil size={14} />
                             </button>
@@ -389,25 +325,20 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
                 </div>
             ))}
             
-            {transactions.length === 0 && (
-                <div className="text-center py-8 text-gray-400 pl-4">No transactions recorded.</div>
-            )}
-
-            {/* Total Summary at the end of list */}
             {transactions.length > 0 && (
                 <div className="mt-6 bg-white dark:bg-darkCard p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm relative z-0">
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">Account Summary</h4>
                     <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Total Credit Given</span>
+                        <div className="flex justify-between items-center text-xs md:text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Total Credit Given</span>
                             <span className="font-bold text-red-600 dark:text-red-400">₹{stats.totalCreditGiven.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Total Received</span>
+                        <div className="flex justify-between items-center text-xs md:text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Total Received</span>
                             <span className="font-bold text-green-600 dark:text-green-400">₹{stats.totalReceived.toLocaleString()}</span>
                         </div>
-                         <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">Net Outstanding</span>
+                         <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700 text-sm">
+                            <span className="font-bold text-gray-900 dark:text-white">Net Outstanding</span>
                             <span className={`font-bold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>₹{balance.toLocaleString()}</span>
                         </div>
                     </div>
@@ -416,20 +347,21 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
         </div>
       </div>
 
-      {/* Fixed Action Buttons - Only Receive now since Add Credit is moved up */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-darkCard border-t border-gray-200 dark:border-gray-700 flex gap-4 no-print z-20">
+      {/* Fixed Action Button - Safe Area Aware */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe-bottom bg-white dark:bg-darkCard border-t border-gray-200 dark:border-gray-700 no-print z-20">
         <button 
             onClick={() => onAddTransaction(customer.id, TransactionType.PAYMENT)}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all text-sm md:text-base mb-1"
         >
             <Plus size={20} /> Receive Payment
         </button>
       </div>
 
-      {/* Reminder Modal */}
+      {/* Reminder Modal - Responsive */}
       {showReminderModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-darkCard rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-sm rounded-t-2xl md:rounded-2xl p-6 shadow-2xl animate-slide-up md:animate-fade-in pb-safe-bottom">
+                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4 md:hidden"></div>
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
                     <Wand2 className="text-purple-600" size={20} />
                     Smart Reminder
@@ -448,17 +380,8 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
                 )}
                 
                 <div className="flex gap-3 mt-4">
-                    <button 
-                        onClick={() => setShowReminderModal(false)}
-                        className="flex-1 py-2 text-gray-600 dark:text-gray-300 font-medium"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        onClick={handleShareReminder}
-                        className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium shadow-md hover:bg-green-700 flex items-center justify-center gap-2"
-                        disabled={generating}
-                    >
+                    <button onClick={() => setShowReminderModal(false)} className="flex-1 py-3 text-gray-600 dark:text-gray-300 font-medium bg-gray-100 dark:bg-gray-800 rounded-xl">Cancel</button>
+                    <button onClick={handleShareReminder} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-medium shadow-md hover:bg-green-700 flex items-center justify-center gap-2" disabled={generating}>
                         <MessageCircle size={18} /> Send
                     </button>
                 </div>
@@ -466,26 +389,16 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
         </div>
       )}
 
-      {/* Delete Modal */}
+      {/* Delete Modal - Responsive */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-             <div className="bg-white dark:bg-darkCard rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+             <div className="bg-white dark:bg-darkCard w-full md:max-w-sm rounded-t-2xl md:rounded-2xl p-6 shadow-2xl pb-safe-bottom">
+                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4 md:hidden"></div>
                 <h3 className="text-lg font-bold mb-2 text-red-600">Delete Customer?</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">This will remove {customer.name} and all their transaction history. This cannot be undone.</p>
-                
+                <p className="text-gray-600 dark:text-gray-300 mb-6">This will remove all data for {customer.name}.</p>
                 <div className="flex gap-3">
-                    <button 
-                        onClick={() => setShowDeleteModal(false)}
-                        className="flex-1 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        onClick={() => { onDeleteCustomer(customer.id); setShowDeleteModal(false); }}
-                        className="flex-1 bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700"
-                    >
-                        Delete
-                    </button>
+                    <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium">Cancel</button>
+                    <button onClick={() => { onDeleteCustomer(customer.id); setShowDeleteModal(false); }} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-medium hover:bg-red-700">Delete</button>
                 </div>
              </div>
         </div>

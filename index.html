@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Mahalaxmi Supermarket Ledger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -11,39 +11,63 @@
         theme: {
           extend: {
             colors: {
-              primary: '#1B4FFF',
+              primary: 'var(--color-primary)',
+              primaryHover: 'var(--color-primary-hover)',
               success: '#2ECC71',
               pending: '#FFB020',
               danger: '#FF3B30',
               surface: '#F5F7FA',
               darkSurface: '#111827',
               darkCard: '#1F2937',
+            },
+            padding: {
+                'safe-bottom': 'env(safe-area-inset-bottom)',
+            },
+            margin: {
+                'safe-bottom': 'env(safe-area-inset-bottom)',
             }
           }
         }
       }
     </script>
     <style>
+      :root {
+        --color-primary: #1B4FFF;
+        --color-primary-hover: #1640d6;
+      }
+      
+      /* Smooth scrolling but preventing pull-to-refresh on mobile app feel */
+      html, body {
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
       /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 4px; /* Thinner for mobile */
+        height: 4px;
       }
       ::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: transparent;
       }
       .dark ::-webkit-scrollbar-track {
-        background: #374151;
+        background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
+        background: #d1d5db;
         border-radius: 4px;
       }
       .dark ::-webkit-scrollbar-thumb {
         background: #4B5563;
       }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
+      
+      /* Hide scrollbar for clean UI in lists but keep functionality */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
       }
       
       @media print {
@@ -52,32 +76,22 @@
         .no-print { display: none !important; }
         .print-only { display: block !important; }
         
-        /* Reset layout for print */
         #root, .flex-col, .h-screen, .md\:flex-row {
             height: auto !important;
             overflow: visible !important;
             display: block !important;
         }
         
-        /* Hide sidebar and mobile nav */
         aside, .fixed.bottom-0 { display: none !important; }
         
-        /* Expand main content */
         main {
             height: auto !important;
             overflow: visible !important;
             width: 100% !important;
             margin: 0 !important;
-            padding: 20px !important;
+            padding: 0 !important;
         }
         
-        /* Ensure lists print fully */
-        .overflow-y-auto {
-            height: auto !important;
-            overflow: visible !important;
-        }
-        
-        /* Force dark text on print */
         * { color: black !important; }
       }
     </style>
