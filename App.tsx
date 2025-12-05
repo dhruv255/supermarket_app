@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronRight, Save, X, Download, FileText, Upload, Database, Palette, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronRight, Save, X, Download, FileText, Upload, Database, Palette, AlertTriangle, Menu } from 'lucide-react';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 
@@ -55,12 +55,11 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSave: (c: Customer, in
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-t-2xl md:rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto pb-safe-bottom">
-                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4 md:hidden"></div>
-                <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto pb-safe-bottom animate-fade-in relative">
+                <button onClick={onClose} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
+                <div className="mb-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Customer</h2>
-                    <button onClick={onClose} className="hidden md:block p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300"><X size={20}/></button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -124,14 +123,13 @@ const AddTransactionModal: React.FC<{ customerId: string, type: TransactionType,
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-t-2xl md:rounded-2xl p-6 shadow-2xl pb-safe-bottom">
-                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4 md:hidden"></div>
-                 <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl pb-safe-bottom animate-fade-in relative max-h-[85vh] overflow-y-auto">
+                <button onClick={onClose} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
+                 <div className="mb-6">
                     <h2 className={`text-xl font-bold ${type === TransactionType.BORROW ? 'text-red-600' : 'text-green-600'}`}>
                         {type === TransactionType.BORROW ? 'Add Borrow Entry' : 'Add Payment'}
                     </h2>
-                    <button onClick={onClose} className="hidden md:block p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300"><X size={20}/></button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -179,12 +177,11 @@ const EditTransactionModal: React.FC<{ transaction: Transaction, onClose: () => 
     };
 
     return (
-         <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-t-2xl md:rounded-2xl p-6 shadow-2xl pb-safe-bottom">
-                 <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4 md:hidden"></div>
-                 <div className="flex justify-between items-center mb-6">
+         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl pb-safe-bottom animate-fade-in relative max-h-[85vh] overflow-y-auto">
+                 <button onClick={onClose} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
+                 <div className="mb-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Transaction</h2>
-                    <button onClick={onClose} className="hidden md:block p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300"><X size={20}/></button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -236,6 +233,7 @@ const App: React.FC = () => {
   const [transactionModal, setTransactionModal] = useState<{show: boolean, type: TransactionType | null, prefillAmount?: number}>({show: false, type: null});
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [showClearDataConfirm, setShowClearDataConfirm] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setCustomers(DB.getCustomers());
@@ -403,6 +401,11 @@ const App: React.FC = () => {
       reader.readAsText(file);
   };
 
+  const handleNav = (target: ViewState) => {
+      setView(target);
+      setMobileMenuOpen(false);
+  }
+
   if (!isDataLoaded) return <div className="h-screen flex items-center justify-center bg-surface dark:bg-darkSurface text-gray-800 dark:text-white">Loading...</div>;
 
   const renderContent = () => {
@@ -418,7 +421,7 @@ const App: React.FC = () => {
             return <CustomerDetail customer={customer} transactions={custTrans} onBack={() => setView('CUSTOMERS')} onAddTransaction={(id, type, amt) => setTransactionModal({show: true, type, prefillAmount: amt})} onEditTransaction={(t) => setEditTransaction(t)} onDeleteCustomer={handleDeleteCustomer} />;
         case 'SETTINGS':
             return (
-                <div className="p-4 md:p-6 bg-surface dark:bg-darkSurface min-h-screen pb-24 md:pb-6 overflow-y-auto">
+                <div className="p-4 md:p-6 bg-surface dark:bg-darkSurface min-h-screen pb-6 overflow-y-auto">
                     <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Settings</h1>
                     <div className="bg-white dark:bg-darkCard p-4 rounded-xl shadow-sm space-y-4 border border-gray-100 dark:border-gray-700">
                         <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
@@ -478,26 +481,47 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col h-[100dvh] md:flex-row bg-surface dark:bg-darkSurface overflow-hidden transition-colors duration-200 max-w-7xl mx-auto shadow-2xl`}>
-        <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-darkCard border-r border-gray-200 dark:border-gray-700 h-full">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+    <div className={`flex h-[100dvh] bg-surface dark:bg-darkSurface overflow-hidden transition-colors duration-200 max-w-7xl mx-auto shadow-2xl`}>
+        
+        {/* Mobile Backdrop */}
+        {mobileMenuOpen && (
+            <div 
+                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                onClick={() => setMobileMenuOpen(false)}
+            />
+        )}
+
+        {/* Sidebar - Desktop & Mobile Drawer */}
+        <aside className={`
+            fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-darkCard border-r border-gray-200 dark:border-gray-700 h-full flex flex-col
+            transform transition-transform duration-300 ease-in-out
+            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+            md:relative md:translate-x-0
+        `}>
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                 <h1 className="text-xl font-bold text-primary">Mahalaxmi<br/><span className="text-gray-400 text-sm font-normal">Supermarket</span></h1>
+                <button onClick={() => setMobileMenuOpen(false)} className="md:hidden text-gray-500 dark:text-gray-400"><X size={24} /></button>
             </div>
-            <nav className="flex-1 p-4 space-y-2">
-                <button onClick={() => setView('DASHBOARD')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${view === 'DASHBOARD' ? 'bg-primary/10 text-primary font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}><LayoutDashboard size={20} /> Dashboard</button>
-                <button onClick={() => setView('CUSTOMERS')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${view === 'CUSTOMERS' || view === 'CUSTOMER_DETAIL' ? 'bg-primary/10 text-primary font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}><Users size={20} /> Customers</button>
-                 <button onClick={() => setView('SETTINGS')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${view === 'SETTINGS' ? 'bg-primary/10 text-primary font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}><Settings size={20} /> Settings</button>
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                <button onClick={() => handleNav('DASHBOARD')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${view === 'DASHBOARD' ? 'bg-primary/10 text-primary font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}><LayoutDashboard size={20} /> Dashboard</button>
+                <button onClick={() => handleNav('CUSTOMERS')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${view === 'CUSTOMERS' || view === 'CUSTOMER_DETAIL' ? 'bg-primary/10 text-primary font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}><Users size={20} /> Customers</button>
+                 <button onClick={() => handleNav('SETTINGS')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${view === 'SETTINGS' ? 'bg-primary/10 text-primary font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}><Settings size={20} /> Settings</button>
             </nav>
         </aside>
 
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-darkCard border-t border-gray-200 dark:border-gray-700 flex justify-around p-3 pb-safe-bottom z-40 no-print shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-            <button onClick={() => setView('DASHBOARD')} className={`flex flex-col items-center gap-1 ${view === 'DASHBOARD' ? 'text-primary' : 'text-gray-400 dark:text-gray-500'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-medium">Home</span></button>
-             <button onClick={() => setView('CUSTOMERS')} className={`flex flex-col items-center gap-1 ${view === 'CUSTOMERS' || view === 'CUSTOMER_DETAIL' ? 'text-primary' : 'text-gray-400 dark:text-gray-500'}`}><Users size={24} /><span className="text-[10px] font-medium">Customers</span></button>
-             <button onClick={() => setView('SETTINGS')} className={`flex flex-col items-center gap-1 ${view === 'SETTINGS' ? 'text-primary' : 'text-gray-400 dark:text-gray-500'}`}><Settings size={24} /><span className="text-[10px] font-medium">Settings</span></button>
-        </div>
+        <main className="flex-1 flex flex-col h-full overflow-hidden relative w-full">
+            {/* Mobile Header */}
+            <header className="md:hidden flex-shrink-0 h-14 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 z-30">
+                 <button onClick={() => setMobileMenuOpen(true)} className="p-2 -ml-2 text-gray-600 dark:text-gray-300">
+                    <Menu size={24} />
+                 </button>
+                 <span className="font-bold text-lg text-primary">Mahalaxmi Ledger</span>
+                 <div className="w-8" />
+            </header>
 
-        <main className="flex-1 h-full overflow-hidden relative">
-            {renderContent()}
+            <div className="flex-1 overflow-hidden relative">
+                {renderContent()}
+            </div>
         </main>
 
         {showAddCustomer && <AddCustomerModal onClose={() => setShowAddCustomer(false)} onSave={handleAddCustomer} />}
@@ -506,8 +530,8 @@ const App: React.FC = () => {
         
         {/* Clear Data Confirmation Modal */}
         {showClearDataConfirm && (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-darkCard w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-fade-in">
+            <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-darkCard w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-fade-in relative">
                     <div className="flex flex-col items-center text-center">
                         <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-4">
                             <AlertTriangle size={32} />

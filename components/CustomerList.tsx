@@ -79,7 +79,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onSelectCustomer
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 pb-4 space-y-3">
         {filteredCustomers.map(customer => {
             const balance = customer.totalBorrowed - customer.totalPaid;
             return (
