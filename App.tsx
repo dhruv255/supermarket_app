@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronRight, Save, X, Download, FileText, Upload, Database, Palette } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronRight, Save, X, Download, FileText, Upload, Database, Palette, AlertTriangle } from 'lucide-react';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 
@@ -228,6 +228,7 @@ const App: React.FC = () => {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [transactionModal, setTransactionModal] = useState<{show: boolean, type: TransactionType | null, prefillAmount?: number}>({show: false, type: null});
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
+  const [showClearDataConfirm, setShowClearDataConfirm] = useState(false);
 
   useEffect(() => {
     setCustomers(DB.getCustomers());
@@ -313,6 +314,15 @@ const App: React.FC = () => {
       }
       setCustomers(DB.getCustomers());
       setTransactions(DB.getTransactions());
+  };
+
+  const handleClearData = () => {
+      DB.clearAllData();
+      setCustomers([]);
+      setTransactions([]);
+      setSelectedCustomerId(null);
+      setView('DASHBOARD');
+      setShowClearDataConfirm(false);
   };
 
   const handleGeneratePDF = () => {
@@ -438,7 +448,7 @@ const App: React.FC = () => {
 
                          <div className="flex justify-between items-center py-2 mt-4">
                             <span className="text-red-500 font-medium">Danger Zone</span>
-                             <button onClick={() => { if(confirm('Are you sure you want to clear EVERYTHING?')) { localStorage.clear(); window.location.reload(); } }} className="text-white bg-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-700 text-sm">Clear All Data</button>
+                             <button onClick={() => setShowClearDataConfirm(true)} className="text-white bg-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-700 text-sm">Clear All Data</button>
                         </div>
                     </div>
                 </div>
@@ -448,7 +458,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col h-screen md:flex-row bg-surface dark:bg-darkSurface overflow-hidden transition-colors duration-200`}>
+    <div className={`flex flex-col h-[100dvh] md:flex-row bg-surface dark:bg-darkSurface overflow-hidden transition-colors duration-200 max-w-7xl mx-auto shadow-2xl`}>
         <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-darkCard border-r border-gray-200 dark:border-gray-700 h-full">
             <div className="p-6 border-b border-gray-100 dark:border-gray-700">
                 <h1 className="text-xl font-bold text-primary">Mahalaxmi<br/><span className="text-gray-400 text-sm font-normal">Supermarket</span></h1>
@@ -473,6 +483,27 @@ const App: React.FC = () => {
         {showAddCustomer && <AddCustomerModal onClose={() => setShowAddCustomer(false)} onSave={handleAddCustomer} />}
         {transactionModal.show && selectedCustomerId && transactionModal.type && <AddTransactionModal customerId={selectedCustomerId} type={transactionModal.type} prefillAmount={transactionModal.prefillAmount} onClose={() => setTransactionModal({show: false, type: null})} onSave={handleAddTransaction} />}
         {editTransaction && <EditTransactionModal transaction={editTransaction} onClose={() => setEditTransaction(null)} onSave={handleUpdateTransaction} />}
+        
+        {/* Clear Data Confirmation Modal */}
+        {showClearDataConfirm && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-darkCard w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-fade-in">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-4">
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Clear All Data?</h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
+                            This will permanently delete all customers and transactions. This action cannot be undone.
+                        </p>
+                        <div className="flex gap-3 w-full">
+                            <button onClick={() => setShowClearDataConfirm(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium">Cancel</button>
+                            <button onClick={handleClearData} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-medium hover:bg-red-700 shadow-md">Yes, Delete All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 };

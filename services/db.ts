@@ -141,6 +141,13 @@ export const DB = {
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
   },
 
+  clearAllData: () => {
+      // Explicitly set to empty arrays so the app doesn't load mock data on restart
+      localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+      localStorage.removeItem(STORAGE_KEYS.PROFILE);
+  },
+
   exportData: () => {
       const data = {
           customers: DB.getCustomers(),
