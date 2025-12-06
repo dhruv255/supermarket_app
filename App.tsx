@@ -56,12 +56,12 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSave: (c: Customer, in
 
     return (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto pb-safe-bottom animate-fade-in relative">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto pb-safe-bottom animate-fade-in relative flex flex-col">
                 <button onClick={onClose} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
                 <div className="mb-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Customer</h2>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
                         <input value={name} onChange={e => setName(e.target.value)} required className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Name" />
@@ -94,7 +94,9 @@ const AddCustomerModal: React.FC<{ onClose: () => void, onSave: (c: Customer, in
                             </div>
                         )}
                     </div>
-                    <button type="submit" className="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-lg mt-4 shadow-lg active:scale-[0.98] transition-all">Save Customer</button>
+                    <div className="pt-4 pb-4">
+                        <button type="submit" className="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-lg shadow-lg active:scale-[0.98] transition-all">Save Customer</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -124,14 +126,14 @@ const AddTransactionModal: React.FC<{ customerId: string, type: TransactionType,
 
     return (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl pb-safe-bottom animate-fade-in relative max-h-[85vh] overflow-y-auto">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl pb-safe-bottom animate-fade-in relative max-h-[85vh] overflow-y-auto flex flex-col">
                 <button onClick={onClose} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
                  <div className="mb-6">
                     <h2 className={`text-xl font-bold ${type === TransactionType.BORROW ? 'text-red-600' : 'text-green-600'}`}>
                         {type === TransactionType.BORROW ? 'Add Borrow Entry' : 'Add Payment'}
                     </h2>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount (₹)</label>
                         <input value={amount} onChange={e => setAmount(e.target.value)} autoFocus required type="number" className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary outline-none text-3xl font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="0" />
@@ -150,9 +152,11 @@ const AddTransactionModal: React.FC<{ customerId: string, type: TransactionType,
                             </div>
                         </div>
                     )}
-                    <button type="submit" className={`w-full py-4 rounded-xl font-bold text-lg mt-4 text-white hover:opacity-90 transition-opacity shadow-lg active:scale-[0.98] ${type === TransactionType.BORROW ? 'bg-red-600' : 'bg-green-600'}`}>
-                        Save {type === TransactionType.BORROW ? 'Entry' : 'Payment'}
-                    </button>
+                    <div className="pt-4 pb-4">
+                        <button type="submit" className={`w-full py-4 rounded-xl font-bold text-lg text-white hover:opacity-90 transition-opacity shadow-lg active:scale-[0.98] ${type === TransactionType.BORROW ? 'bg-red-600' : 'bg-green-600'}`}>
+                            Save {type === TransactionType.BORROW ? 'Entry' : 'Payment'}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -178,15 +182,15 @@ const EditTransactionModal: React.FC<{ transaction: Transaction, onClose: () => 
 
     return (
          <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl pb-safe-bottom animate-fade-in relative max-h-[85vh] overflow-y-auto">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-md rounded-2xl p-6 shadow-2xl pb-safe-bottom animate-fade-in relative max-h-[85vh] overflow-y-auto flex flex-col">
                  <button onClick={onClose} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
                  <div className="mb-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Transaction</h2>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount (₹)</label>
-                        <input value={amount} onChange={e => setAmount(e.target.value)} required type="number" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold bg-white dark:bg-gray-800 dark:text-white text-2xl border-gray-200 dark:border-gray-600" />
+                        <input value={amount} onChange={e => setAmount(e.target.value)} required type="number" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-2xl border-gray-200 dark:border-gray-600" />
                     </div>
                      <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
@@ -207,7 +211,9 @@ const EditTransactionModal: React.FC<{ transaction: Transaction, onClose: () => 
                             </label>
                         </div>
                     )}
-                    <button type="submit" className="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-lg mt-4 shadow-lg active:scale-[0.98] transition-all">Update</button>
+                    <div className="pt-4 pb-4">
+                        <button type="submit" className="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-lg shadow-lg active:scale-[0.98] transition-all">Update</button>
+                    </div>
                 </form>
             </div>
          </div>
@@ -374,16 +380,35 @@ const App: React.FC = () => {
     doc.save(`Mahalaxmi_Report_${new Date().toISOString().split('T')[0]}.pdf`);
   };
   
-  const handleBackup = () => {
+  const handleBackup = async () => {
       const data = DB.exportData();
+      const fileName = `mahalaxmi_backup_${new Date().toISOString().split('T')[0]}.json`;
       const blob = new Blob([data], { type: 'application/json' });
+      
+      // Attempt to share using navigator.share for mobile/APK support
+      const file = new File([blob], fileName, { type: 'application/json' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+              await navigator.share({
+                  files: [file],
+                  title: 'Backup Data',
+                  text: 'Mahalaxmi Supermarket Backup JSON'
+              });
+              return;
+          } catch (e) {
+              console.error("Share API failed, falling back to download", e);
+          }
+      }
+
+      // Fallback to standard download
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `mahalaxmi_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
   };
 
   const handleRestore = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -533,7 +558,7 @@ const App: React.FC = () => {
         {/* Clear Data Confirmation Modal */}
         {showClearDataConfirm && (
             <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-darkCard w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-fade-in relative">
+                <div className="bg-white dark:bg-darkCard w-full max-w-sm rounded-2xl p-6 pb-10 shadow-2xl animate-fade-in relative flex flex-col">
                     <div className="flex flex-col items-center text-center">
                         <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-4">
                             <AlertTriangle size={32} />

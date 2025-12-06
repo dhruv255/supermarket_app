@@ -292,7 +292,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
       </div>
 
       {/* Transaction History */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
+      <div className="flex-1 overflow-y-auto px-4 pb-32">
         <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">History</h3>
         <div className="space-y-3 relative">
             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
@@ -349,7 +349,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
       </div>
 
       {/* Fixed Action Button - Safe Area Aware */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe-bottom bg-white dark:bg-darkCard border-t border-gray-200 dark:border-gray-700 no-print z-40">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 md:pb-8 bg-white dark:bg-darkCard border-t border-gray-200 dark:border-gray-700 no-print z-40" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}>
         <button 
             onClick={() => onAddTransaction(customer.id, TransactionType.PAYMENT)}
             className="w-full bg-green-600 hover:bg-green-700 text-white py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all text-sm md:text-base mb-1"
@@ -361,7 +361,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
       {/* Reminder Modal - Responsive */}
       {showReminderModal && (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-darkCard w-full md:max-w-sm rounded-2xl p-6 shadow-2xl animate-fade-in relative pb-safe-bottom">
+            <div className="bg-white dark:bg-darkCard w-full md:max-w-sm rounded-2xl p-6 pb-10 shadow-2xl animate-fade-in relative">
                 <button onClick={() => setShowReminderModal(false)} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
                     <Wand2 className="text-purple-600" size={20} />
@@ -393,7 +393,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ customer, transactions,
       {/* Delete Modal - Responsive */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-             <div className="bg-white dark:bg-darkCard w-full md:max-w-sm rounded-2xl p-6 shadow-2xl relative pb-safe-bottom">
+             <div className="bg-white dark:bg-darkCard w-full md:max-w-sm rounded-2xl p-6 pb-10 shadow-2xl relative">
                 <button onClick={() => setShowDeleteModal(false)} className="absolute right-4 top-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 z-10"><X size={20}/></button>
                 <h3 className="text-lg font-bold mb-2 text-red-600">Delete Customer?</h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">This will remove all data for {customer.name}.</p>

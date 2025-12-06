@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { Users, TrendingUp, AlertTriangle, Wallet, Wand2 } from 'lucide-react';
+import { Users, TrendingUp, AlertTriangle, Wallet } from 'lucide-react';
 import { Customer, Transaction, TransactionType } from '../types';
-import { analyzeStoreHealth } from '../services/geminiService';
 
 interface DashboardProps {
   customers: Customer[];
@@ -11,8 +10,6 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ customers, transactions, onNavigate }) => {
-  const [aiInsight, setAiInsight] = useState<string>("");
-  const [loadingInsight, setLoadingInsight] = useState(false);
 
   const totalOutstanding = customers.reduce((acc, curr) => acc + (curr.totalBorrowed - curr.totalPaid), 0);
   const totalCollected = customers.reduce((acc, curr) => acc + curr.totalPaid, 0);
@@ -47,13 +44,6 @@ const Dashboard: React.FC<DashboardProps> = ({ customers, transactions, onNaviga
       { name: 'Outstanding', value: totalOutstanding, color: '#FF3B30' }
   ], [totalCollected, totalOutstanding]);
 
-  const getInsight = async () => {
-    setLoadingInsight(true);
-    const insight = await analyzeStoreHealth(totalOutstanding, totalCollected, customers.length);
-    setAiInsight(insight);
-    setLoadingInsight(false);
-  };
-
   return (
     <div className="p-3 md:p-6 space-y-4 md:space-y-6 pb-6 bg-surface dark:bg-darkSurface transition-colors duration-200 overflow-y-auto h-full overscroll-contain">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
@@ -61,21 +51,7 @@ const Dashboard: React.FC<DashboardProps> = ({ customers, transactions, onNaviga
            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
            <p className="text-sm text-gray-500 dark:text-gray-400">Mahalaxmi Supermarket Overview</p>
         </div>
-        <button 
-            onClick={getInsight}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl shadow-md text-sm hover:scale-[1.02] active:scale-95 transition-all"
-        >
-            <Wand2 size={16} />
-            {loadingInsight ? 'Analyzing...' : 'AI Insights'}
-        </button>
       </header>
-
-      {aiInsight && (
-        <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 p-4 rounded-xl text-indigo-800 dark:text-indigo-200 text-sm animate-fade-in">
-            <h3 className="font-semibold flex items-center gap-2 mb-1"><Wand2 size={14}/> Gemini Analysis</h3>
-            {aiInsight}
-        </div>
-      )}
 
       {/* KPI Cards - 2 cols on mobile, 4 on desktop */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
