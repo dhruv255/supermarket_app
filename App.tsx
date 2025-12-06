@@ -422,56 +422,58 @@ const App: React.FC = () => {
         case 'SETTINGS':
             return (
                 <div className="p-4 md:p-6 bg-surface dark:bg-darkSurface min-h-screen pb-6 overflow-y-auto">
-                    <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Settings</h1>
-                    <div className="bg-white dark:bg-darkCard p-4 rounded-xl shadow-sm space-y-4 border border-gray-100 dark:border-gray-700">
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-                            <span className="text-gray-800 dark:text-gray-200 font-medium">Dark Mode</span>
-                            <div onClick={() => setDarkMode(!darkMode)} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${darkMode ? 'bg-primary' : 'bg-gray-300'}`}>
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${darkMode ? 'left-7' : 'left-1'}`}></div>
+                    <div className="max-w-4xl mx-auto">
+                        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Settings</h1>
+                        <div className="bg-white dark:bg-darkCard p-4 rounded-xl shadow-sm space-y-4 border border-gray-100 dark:border-gray-700">
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                                <span className="text-gray-800 dark:text-gray-200 font-medium">Dark Mode</span>
+                                <div onClick={() => setDarkMode(!darkMode)} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${darkMode ? 'bg-primary' : 'bg-gray-300'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${darkMode ? 'left-7' : 'left-1'}`}></div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="py-2 border-b border-gray-100 dark:border-gray-700">
-                            <div className="flex items-center gap-2 mb-3">
-                                <Palette size={18} className="text-gray-500" />
-                                <span className="text-gray-800 dark:text-gray-200 font-medium">App Theme Color</span>
+                            <div className="py-2 border-b border-gray-100 dark:border-gray-700">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Palette size={18} className="text-gray-500" />
+                                    <span className="text-gray-800 dark:text-gray-200 font-medium">App Theme Color</span>
+                                </div>
+                                <div className="grid grid-cols-6 gap-2">
+                                    {THEMES.map(theme => (
+                                        <button 
+                                            key={theme.name}
+                                            onClick={() => setActiveTheme(theme)}
+                                            className={`w-full aspect-square rounded-full transition-transform hover:scale-110 flex items-center justify-center border-2 ${activeTheme.name === theme.name ? 'border-gray-400 dark:border-white scale-110' : 'border-transparent'}`}
+                                            style={{ backgroundColor: theme.color }}
+                                            title={theme.name}
+                                        />
+                                    ))}
+                                </div>
                             </div>
-                            <div className="grid grid-cols-6 gap-2">
-                                {THEMES.map(theme => (
-                                    <button 
-                                        key={theme.name}
-                                        onClick={() => setActiveTheme(theme)}
-                                        className={`w-full aspect-square rounded-full transition-transform hover:scale-110 flex items-center justify-center border-2 ${activeTheme.name === theme.name ? 'border-gray-400 dark:border-white scale-110' : 'border-transparent'}`}
-                                        style={{ backgroundColor: theme.color }}
-                                        title={theme.name}
-                                    />
-                                ))}
-                            </div>
-                        </div>
 
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 py-2 border-b border-gray-100 dark:border-gray-700">
-                            <span className="text-gray-800 dark:text-gray-200 font-medium">Customer Report (PDF)</span>
-                            <button onClick={handleGeneratePDF} className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors w-full sm:w-auto justify-center">
-                                <FileText size={16} /> Download PDF
-                            </button>
-                        </div>
-                        
-                        <div className="py-2 border-b border-gray-100 dark:border-gray-700">
-                            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Data Management</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <button onClick={handleBackup} className="flex flex-col items-center justify-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 p-4 rounded-xl hover:bg-green-100 transition-colors">
-                                    <Download size={24} /> <span className="font-semibold">Backup Data</span>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 py-2 border-b border-gray-100 dark:border-gray-700">
+                                <span className="text-gray-800 dark:text-gray-200 font-medium">Customer Report (PDF)</span>
+                                <button onClick={handleGeneratePDF} className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors w-full sm:w-auto justify-center">
+                                    <FileText size={16} /> Download PDF
                                 </button>
-                                <label className="flex flex-col items-center justify-center gap-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 p-4 rounded-xl hover:bg-purple-100 transition-colors cursor-pointer">
-                                    <Upload size={24} /> <span className="font-semibold">Restore Data</span>
-                                    <input type="file" accept=".json" onChange={handleRestore} className="hidden" />
-                                </label>
                             </div>
-                        </div>
+                            
+                            <div className="py-2 border-b border-gray-100 dark:border-gray-700">
+                                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Data Management</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <button onClick={handleBackup} className="flex flex-col items-center justify-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 p-4 rounded-xl hover:bg-green-100 transition-colors">
+                                        <Download size={24} /> <span className="font-semibold">Backup Data</span>
+                                    </button>
+                                    <label className="flex flex-col items-center justify-center gap-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 p-4 rounded-xl hover:bg-purple-100 transition-colors cursor-pointer">
+                                        <Upload size={24} /> <span className="font-semibold">Restore Data</span>
+                                        <input type="file" accept=".json" onChange={handleRestore} className="hidden" />
+                                    </label>
+                                </div>
+                            </div>
 
-                         <div className="flex justify-between items-center py-2 mt-4">
-                            <span className="text-red-500 font-medium">Danger Zone</span>
-                             <button onClick={() => setShowClearDataConfirm(true)} className="text-white bg-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-700 text-sm">Clear All Data</button>
+                            <div className="flex justify-between items-center py-2 mt-4">
+                                <span className="text-red-500 font-medium">Danger Zone</span>
+                                <button onClick={() => setShowClearDataConfirm(true)} className="text-white bg-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-700 text-sm">Clear All Data</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -481,7 +483,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-[100dvh] bg-surface dark:bg-darkSurface overflow-hidden transition-colors duration-200 max-w-7xl mx-auto shadow-2xl`}>
+    <div className={`flex h-[100dvh] bg-surface dark:bg-darkSurface overflow-hidden transition-colors duration-200 w-full`}>
         
         {/* Mobile Backdrop */}
         {mobileMenuOpen && (
