@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { Customer, Transaction } from "../types";
+import { Customer, Transaction, TransactionType } from "../types";
 
 const initGenAI = () => {
   if (!process.env.API_KEY) {
@@ -74,3 +74,45 @@ export const suggestTransactionCategory = async (items: string): Promise<string>
          return "General";
      }
 }
+
+export const generateTransactionMessage = async (customer: Customer, type: TransactionType, amount: number, items: string, balance: number): Promise<string> => {
+  const ai = initGenAI();
+  const isBorrow = type === TransactionType.BORROW;
+  const actionStr = isBorrow ? 'Credit Added' : 'Payment Received';
+  
+  // Fallback message
+  const fallback = `*${actionStr}*\nName: ${customer.name}\nAmount: ₹${amount}\n${isBorrow ? `Items: ${items}\n` : ''}Current Balance: ₹${balance}`;
+
+  if (!ai) return fallback;
+
+  try {
+    const prompt = `
+        You are a smart assistant for a Kirana Store (Grocery Shop) owner. 
+        Write a short WhatsApp message to customer "${customer.name}".
+        
+        Transaction Context:
+        - Type: ${isBorrow ? 'Added to Credit (Udhaar)' : 'Payment Received (Jama)'}
+        - Amount: ₹${amount}
+        - Description: ${items}
+        - Updated Total Due Balance: ₹${balance}
+
+        Guidelines:
+        - Be polite and professional.
+        - If credit: "Added ₹${amount} for ${items} to your account."
+        - If payment: "Received ₹${amount}. Thank you."
+        - Always mention the Total Due Balance at the end clearly.
+        - Use appropriate emojis.
+        - No markdown bolding (asterisks) unless necessary for Amount/Balance.
+        - Keep it very concise (under 30 words).
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+    return response.text.trim() || fallback;
+  } catch (error) {
+    console.error("Gemini Error:", error);
+    return fallback;
+  }
+};

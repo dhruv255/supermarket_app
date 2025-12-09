@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useDeferredValue } from 'react';
 import { Search, Plus, User, Phone, ChevronRight, MapPin, IndianRupee } from 'lucide-react';
 import { Customer } from '../types';
 
@@ -11,13 +11,17 @@ interface CustomerListProps {
 const CustomerList: React.FC<CustomerListProps> = ({ customers, onSelectCustomer, onAddCustomer }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'DUE' | 'PAID'>('ALL');
+  
+  // Use deferred value to prevent blocking UI while typing
+  const deferredSearch = useDeferredValue(searchTerm);
 
   const filteredCustomers = customers.filter(c => {
-    const term = searchTerm.toLowerCase();
+    const term = deferredSearch.toLowerCase();
     const balance = c.totalBorrowed - c.totalPaid;
     
     // Smart Search: Checks Name, Phone, Address, and even the specific Amount
     const matchesSearch = 
+        !term || 
         c.name.toLowerCase().includes(term) || 
         c.phone.includes(term) ||
         (c.address && c.address.toLowerCase().includes(term)) ||
@@ -29,9 +33,9 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onSelectCustomer
   });
 
   return (
-    <div className="h-full flex flex-col bg-surface dark:bg-darkSurface transition-colors duration-200">
-      {/* Sticky Header */}
-      <div className="sticky top-0 bg-white dark:bg-darkCard z-10 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div className="h-full overflow-y-auto bg-surface dark:bg-darkSurface transition-colors duration-200">
+      {/* Header - No longer sticky */}
+      <div className="bg-white dark:bg-darkCard z-10 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="p-4 flex justify-between items-center">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Customers ({customers.length})</h1>
             <button 
@@ -79,7 +83,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onSelectCustomer
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto p-4 pb-4 space-y-3">
+      <div className="p-4 pb-20 space-y-3">
         {filteredCustomers.map(customer => {
             const balance = customer.totalBorrowed - customer.totalPaid;
             return (

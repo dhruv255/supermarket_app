@@ -1,3 +1,4 @@
+
 export interface Customer {
   id: string;
   name: string;
@@ -36,6 +37,13 @@ export interface StoreProfile {
   address: string;
   phone: string;
   ownerName: string;
+}
+
+export interface UserProfile {
+    email: string;
+    storeName: string;
+    ownerName: string;
+    createdAt: string;
 }
 
 export type ViewState = 'DASHBOARD' | 'CUSTOMERS' | 'CUSTOMER_DETAIL' | 'SETTINGS' | 'LOGIN';

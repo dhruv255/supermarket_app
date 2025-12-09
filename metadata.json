@@ -1,5 +1,5 @@
 {
-  "name": "Kirana Credit",
+  "name": "Kirana Credits",
   "description": "A digital ledger system for grocery stores to track credit, payments, and customers with AI-powered insights.",
   "requestFramePermissions": [
     "microphone"

@@ -15,28 +15,48 @@ const Dashboard: React.FC<DashboardProps> = ({ customers, transactions, onNaviga
   const totalCollected = customers.reduce((acc, curr) => acc + curr.totalPaid, 0);
   const activeCustomers = customers.filter(c => (c.totalBorrowed - c.totalPaid) > 0).length;
   
+  // Optimized Chart Data Calculation (Single Pass)
   const chartData = React.useMemo(() => {
-    return Array.from({ length: 7 }).map((_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (6 - i));
-        // Normalize date to YYYY-MM-DD for comparison
-        d.setHours(0,0,0,0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Create a map for the last 7 days to store data
+    // Key: YYYY-MM-DD, Value: Object
+    const daysMap = new Map<string, { name: string; borrowed: number; collected: number }>();
+    const orderedData: any[] = [];
+
+    // Initialize buckets for last 7 days
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const key = d.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
         
-        const dayTransactions = transactions.filter(t => {
-            const tDate = new Date(t.date);
-            tDate.setHours(0,0,0,0);
-            return tDate.getTime() === d.getTime();
-        });
+        const entry = { name: dayName, borrowed: 0, collected: 0 };
+        daysMap.set(key, entry);
+        orderedData.push(entry);
+    }
 
-        const borrowed = dayTransactions.filter(t => t.type === TransactionType.BORROW).reduce((acc, t) => acc + t.amount, 0);
-        const collected = dayTransactions.filter(t => t.type === TransactionType.PAYMENT).reduce((acc, t) => acc + t.amount, 0);
+    // Single pass through transactions to aggregate data
+    // We only look at transactions, filtering efficiently
+    const sevenDaysAgoTimestamp = new Date(today).setDate(today.getDate() - 7);
 
-        return {
-          name: d.toLocaleDateString('en-US', { weekday: 'short' }),
-          borrowed,
-          collected
-        };
-    });
+    for (const t of transactions) {
+        // Optimization: Quick string date check if format is ISO
+        const tDateString = t.date.split('T')[0];
+        
+        // If exact date match in our map
+        if (daysMap.has(tDateString)) {
+            const entry = daysMap.get(tDateString)!;
+            if (t.type === TransactionType.BORROW) {
+                entry.borrowed += t.amount;
+            } else {
+                entry.collected += t.amount;
+            }
+        }
+    }
+
+    return orderedData;
   }, [transactions]);
 
   const pieData = React.useMemo(() => [
@@ -49,7 +69,7 @@ const Dashboard: React.FC<DashboardProps> = ({ customers, transactions, onNaviga
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
         <div>
            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
-           <p className="text-sm text-gray-500 dark:text-gray-400">Mahalaxmi Supermarket Overview</p>
+           <p className="text-sm text-gray-500 dark:text-gray-400">Kirana Credits Overview</p>
         </div>
       </header>
 

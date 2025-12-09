@@ -1,10 +1,10 @@
 import { Customer, Transaction, TransactionType, StoreProfile } from '../types';
 
 const STORAGE_KEYS = {
-  CUSTOMERS: 'mahalaxmi_customers',
-  TRANSACTIONS: 'mahalaxmi_transactions',
-  PROFILE: 'mahalaxmi_profile',
-  USER: 'mahalaxmi_user',
+  CUSTOMERS: 'kirana_customers',
+  TRANSACTIONS: 'kirana_transactions',
+  PROFILE: 'kirana_profile',
+  USER: 'kirana_user'
 };
 
 // Initial Mock Data
@@ -51,7 +51,7 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
 export const DB = {
   getProfile: (): StoreProfile => {
     const data = localStorage.getItem(STORAGE_KEYS.PROFILE);
-    return data ? JSON.parse(data) : { name: 'Mahalaxmi Supermarket', address: 'Main Market, Pune', phone: '9876543210', ownerName: 'Admin' };
+    return data ? JSON.parse(data) : { name: 'Kirana Credits Store', address: 'Main Market, Pune', phone: '9876543210', ownerName: 'Admin' };
   },
 
   saveProfile: (profile: StoreProfile) => {
@@ -142,7 +142,6 @@ export const DB = {
   },
 
   clearAllData: () => {
-      // Explicitly set to empty arrays so the app doesn't load mock data on restart
       localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
       localStorage.removeItem(STORAGE_KEYS.PROFILE);
