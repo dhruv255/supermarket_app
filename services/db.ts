@@ -1,3 +1,4 @@
+
 import { Customer, Transaction, TransactionType, StoreProfile } from '../types';
 
 const STORAGE_KEYS = {

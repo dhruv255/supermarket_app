@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronRight, Save, X, Download, FileText, Upload, Database, Palette, AlertTriangle, Menu, Share2, CheckCircle2, RefreshCw, FileJson, Smartphone, Trash2, History, ShoppingBasket } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronRight, Save, X, Download, FileText, Upload, Database, Palette, AlertTriangle, Menu, Share2, CheckCircle2, RefreshCw, FileJson, Smartphone, Trash2, ShoppingBasket, Cloud, CloudCheck, Loader2 } from 'lucide-react';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -376,7 +377,9 @@ const EditTransactionModal: React.FC<{ transaction: Transaction, onClose: () => 
 
 const App: React.FC = () => {
   // Auth State
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(AuthService.getCurrentUser());
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   // Initialize state from LocalStorage so refresh works
   const [view, setView] = useState<ViewState>(() => {
@@ -404,13 +407,12 @@ const App: React.FC = () => {
   const [receiptData, setReceiptData] = useState<{transaction: Transaction, customer: Customer} | null>(null);
 
   useEffect(() => {
-    // Only load DB data if user is logged in
-    if (currentUser) {
-        setCustomers(DB.getCustomers());
-        setTransactions(DB.getTransactions());
-    }
-    setIsDataLoaded(true);
-    
+    // Initialize Auth
+    AuthService.initialize().then(user => {
+        setCurrentUser(user);
+        setAuthLoading(false);
+    });
+
     const isDark = localStorage.getItem('theme') === 'dark';
     setDarkMode(isDark);
     
@@ -418,6 +420,31 @@ const App: React.FC = () => {
     if (savedTheme) {
         const theme = THEMES.find(t => t.name === savedTheme);
         if (theme) setActiveTheme(theme);
+    }
+    
+    // Auto-fetch data on window focus to keep devices in sync
+    const handleFocus = async () => {
+        const { data: { session } } = await import('./services/supabase').then(m => m.supabase.auth.getSession());
+        if (session?.user) {
+            await AuthService.pullData(session.user.id);
+            if (localStorage.getItem('kirana_auth_user')) {
+                // Refresh local state from DB
+                setCustomers(DB.getCustomers());
+                setTransactions(DB.getTransactions());
+            }
+        }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  useEffect(() => {
+    // Only load DB data if user is logged in
+    if (currentUser) {
+        setCustomers(DB.getCustomers());
+        setTransactions(DB.getTransactions());
+        setIsDataLoaded(true);
     }
   }, [currentUser]);
 
@@ -467,6 +494,13 @@ const App: React.FC = () => {
       AuthService.logout();
       setCurrentUser(null);
       setShowLogoutConfirm(false);
+  };
+
+  const handleManualSync = async () => {
+      setSyncing(true);
+      await AuthService.sync(true);
+      // Wait a bit to show user it finished
+      setTimeout(() => setSyncing(false), 500);
   };
 
   const handleAddCustomer = (customer: Customer, initialBorrow?: {amount: number, items: string}) => {
@@ -575,62 +609,14 @@ const App: React.FC = () => {
     doc.text(`Total Outstanding Balance: Rs. ${totalOutstanding.toLocaleString()}`, 14, finalY);
     doc.save(`Kirana_Report_${new Date().toISOString().split('T')[0]}.pdf`);
   };
-  
-  // FIXED: Share Backup with Automatic Fallback
-  const handleShareBackup = async () => {
-      const data = DB.exportData();
-      const fileName = `kirana_backup_${new Date().toISOString().slice(0,10)}.json`;
-      const blob = new Blob([data], { type: 'application/json' });
-      const file = new File([blob], fileName, { type: 'application/json' });
-
-      // Robust Share Logic
-      try {
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                  files: [file],
-                  title: 'Backup Data',
-                  text: 'Kirana Credits Backup JSON'
-              });
-          } else {
-              throw new Error("Sharing files not supported");
-          }
-      } catch (e) {
-          // If share fails or is rejected, fallback to direct download immediately
-          console.warn("Share failed, falling back to download", e);
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-      }
-  };
-
-  const handleRestore = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          if (DB.importData(e.target?.result as string)) {
-              alert('Data restored successfully!');
-              AuthService.sync(); // Update cloud
-              window.location.reload();
-          } else {
-              alert('Failed to restore data. Invalid file format.');
-          }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-  };
 
   const handleNav = (target: ViewState) => {
       setView(target);
       setMobileMenuOpen(false);
   }
 
-  if (!isDataLoaded) return <div className="h-screen flex items-center justify-center bg-surface dark:bg-darkSurface text-gray-800 dark:text-white">Loading App...</div>;
+  if (authLoading) return <div className="h-screen flex items-center justify-center bg-surface dark:bg-darkSurface text-gray-800 dark:text-white">Authenticating...</div>;
+  if (!isDataLoaded && currentUser) return <div className="h-screen flex items-center justify-center bg-surface dark:bg-darkSurface text-gray-800 dark:text-white">Loading App...</div>;
 
   // Show Auth Screen if not logged in
   if (!currentUser) {
@@ -668,6 +654,27 @@ const App: React.FC = () => {
                                     <LogOut size={20} />
                                 </button>
                             </div>
+                            
+                            {/* Cloud Sync Status */}
+                            <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full text-green-600 dark:text-green-400">
+                                        <CloudCheck size={18} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Cloud Sync Active</h3>
+                                        <p className="text-xs text-gray-500">Data saved to Supabase</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={handleManualSync}
+                                    disabled={syncing}
+                                    className="text-primary hover:text-primaryHover text-sm font-bold flex items-center gap-1 disabled:opacity-50"
+                                >
+                                    {syncing ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
+                                    {syncing ? 'Syncing...' : 'Sync Now'}
+                                </button>
+                            </div>
 
                             {/* Theme & Appearance */}
                             <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
@@ -692,25 +699,6 @@ const App: React.FC = () => {
                                             title={theme.name}
                                         />
                                     ))}
-                                </div>
-                            </div>
-
-                            {/* External Backup Section */}
-                            <div className="py-2 border-b border-gray-100 dark:border-gray-700">
-                                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider flex items-center gap-2">
-                                    <Database size={16}/> Device Backup & Restore
-                                </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                     <button onClick={handleShareBackup} className="flex flex-col items-center justify-center gap-2 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 p-4 rounded-xl hover:bg-teal-100 transition-colors">
-                                        <Share2 size={24} /> <span className="font-semibold text-sm">Share Backup</span>
-                                        <span className="text-[10px] opacity-70">WhatsApp / Drive</span>
-                                    </button>
-
-                                    <label className="flex flex-col items-center justify-center gap-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 p-4 rounded-xl hover:bg-purple-100 transition-colors cursor-pointer">
-                                        <Upload size={24} /> <span className="font-semibold text-sm">Restore from File</span>
-                                        <span className="text-[10px] opacity-70">Select .json file to restore</span>
-                                        <input type="file" accept=".json" onChange={handleRestore} className="hidden" />
-                                    </label>
                                 </div>
                             </div>
                             
